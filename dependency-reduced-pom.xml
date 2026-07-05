@@ -20,7 +20,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>com.imanimen.core.JttpServer</mainClass>
+                  <mainClass>com.imanimen.jttpserver.JttpServer</mainClass>
                 </transformer>
               </transformers>
             </configuration>
