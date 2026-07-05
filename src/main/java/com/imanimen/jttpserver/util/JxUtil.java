@@ -1,4 +1,4 @@
-package com.imanimen.core.util;
+package com.imanimen.jttpserver.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.*;
 import java.io.IOException;

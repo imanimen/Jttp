@@ -1,4 +1,4 @@
-package com.imanimen.core.config;
+package com.imanimen.jttpserver.config;
 
 public class Configuration {
     private int port;

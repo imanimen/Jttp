@@ -1,8 +1,8 @@
-package com.imanimen.core.config;
+package com.imanimen.jttpserver.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.imanimen.core.util.JxUtil;
+import com.imanimen.jttpserver.util.JxUtil;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
