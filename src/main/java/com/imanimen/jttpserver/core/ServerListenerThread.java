@@ -42,6 +42,13 @@ public class ServerListenerThread extends Thread {
                 inputStream.close();
                 outputStream.close();
                 socket.close();
+
+                // issue: connections got queue below is the demonstration:
+                try {
+                    sleep(5000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
             }
             // todo handle later
             // serverSocket.close();
