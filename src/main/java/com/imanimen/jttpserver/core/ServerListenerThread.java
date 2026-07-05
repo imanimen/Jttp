@@ -28,19 +28,23 @@ public class ServerListenerThread extends Thread {
     public void run() {
 
         try {
-            Socket socket = serverSocket.accept();
-            LOGGER.info("accepted connection from {}", socket.getInetAddress());
+            while (serverSocket.isBound() && ! serverSocket.isClosed()) {
 
-            InputStream inputStream = socket.getInputStream();
-            OutputStream outputStream = socket.getOutputStream();
+                Socket socket = serverSocket.accept();
+                LOGGER.info("accepted connection from {}", socket.getInetAddress());
 
-            String response = htmlContent();
+                InputStream inputStream = socket.getInputStream();
+                OutputStream outputStream = socket.getOutputStream();
 
-            outputStream.write(response.getBytes());
-            inputStream.close();
-            outputStream.close();
-            socket.close();
-            serverSocket.close();
+                String response = htmlContent();
+
+                outputStream.write(response.getBytes());
+                inputStream.close();
+                outputStream.close();
+                socket.close();
+            }
+            // todo handle later
+            // serverSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
