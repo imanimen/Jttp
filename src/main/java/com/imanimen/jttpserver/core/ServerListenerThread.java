@@ -31,41 +31,25 @@ public class ServerListenerThread extends Thread {
             while (serverSocket.isBound() && ! serverSocket.isClosed()) {
 
                 Socket socket = serverSocket.accept();
+
                 LOGGER.info("accepted connection from {}", socket.getInetAddress());
 
-                InputStream inputStream = socket.getInputStream();
-                OutputStream outputStream = socket.getOutputStream();
+                JttpConnectionWorkerThread worker = new JttpConnectionWorkerThread(socket);
+                worker.start();
+            }
 
-                String response = htmlContent();
-
-                outputStream.write(response.getBytes());
-                inputStream.close();
-                outputStream.close();
-                socket.close();
-
-                // issue: connections got queue below is the demonstration:
+        } catch (IOException e) {
+            LOGGER.error("Problem with setting socket " + e);
+            e.printStackTrace();
+        } finally {
+            if (serverSocket != null && !serverSocket.isClosed()) {
                 try {
-                    sleep(5000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    serverSocket.close();
+                } catch (IOException ignored) {
                 }
             }
-            // todo handle later
-            // serverSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
-    private static String htmlContent() {
-        String html = "<html><head><title>Jttp Server</title><body><h1>This page was server by JTTP!</h1></body></head></html>";
-        final String CRLF = "\r\n"; // 13, 10 ASCII
-        String response =
-                "HTTP/1.1 200 OK" + CRLF + // status line: HTTP_VERSION RESPONSE_CODE RESPONSE_MESSAGE
-                        "Content-Length: " + html.getBytes().length + CRLF +
-                        CRLF +
-                        html +
-                        CRLF + CRLF;
-        return response;
-    }
+
 }
