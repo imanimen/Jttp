@@ -1,12 +1,18 @@
 package com.imanimen.jttpserver.core;
 
+import com.imanimen.jttpserver.JttpServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 
 public class ServerListenerThread extends Thread {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ServerListenerThread.class);
 
     private int port;
     private String webroot;
@@ -23,6 +29,7 @@ public class ServerListenerThread extends Thread {
 
         try {
             Socket socket = serverSocket.accept();
+            LOGGER.info("accepted connection from {}", socket.getInetAddress());
 
             InputStream inputStream = socket.getInputStream();
             OutputStream outputStream = socket.getOutputStream();

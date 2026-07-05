@@ -3,24 +3,23 @@ package com.imanimen.jttpserver;
 import com.imanimen.jttpserver.config.Configuration;
 import com.imanimen.jttpserver.config.ConfigurationManager;
 import com.imanimen.jttpserver.core.ServerListenerThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.util.Date;
 
 /**
  * Driver Class for the Jttp Server
  */
 public class JttpServer {
+    private final static Logger LOGGER = LoggerFactory.getLogger(JttpServer.class);
+
     public static void main(String[] args) {
-        System.out.println("Starting JttpServer");
+
+        LOGGER.info("Jttp Server Started at {}", new Date().toString());
         ConfigurationManager.getInstance().loadConfigurationFile("src/main/resources/jttp.json");
         Configuration conf = ConfigurationManager.getInstance().getCurrentConfiguration();
-
-        System.out.println("Using Port: " + conf.getPort());
-        System.out.println("Using WebRoot: " + conf.getWebroot());
 
         try {
             ServerListenerThread serverListenerThread = new ServerListenerThread(conf.getPort(), conf.getWebroot());
