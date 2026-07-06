@@ -41,7 +41,7 @@ public class HttpParser {
             if (_byte == CR) {
                 _byte = reader.read();
                 if (_byte == LF) {
-                    LOGGER.debug("Request line to process: {}", processingDataBuffer.toString());
+                    LOGGER.debug("Request line VERSION to process: {}", processingDataBuffer.toString());
                     return;
                 }
             }
@@ -50,6 +50,7 @@ public class HttpParser {
                 // todo: process previous data
                 if (! methodParsed) {
                     LOGGER.debug("Request line METHOD to process: {}", processingDataBuffer.toString());
+                    request.setMethod(processingDataBuffer.toString());
                     methodParsed = true;
                 } else if (! requestTargetParsed) {
                     LOGGER.debug("Request line to TARGET process: {}", processingDataBuffer.toString());

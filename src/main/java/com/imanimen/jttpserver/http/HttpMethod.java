@@ -1,4 +1,8 @@
 package com.imanimen.jttpserver.http;
 
-public class HttpMethod {
+public enum HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
 }

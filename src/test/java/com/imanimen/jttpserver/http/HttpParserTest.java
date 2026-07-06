@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 class  HttpParserTest {
 
     private static HttpParser httpParser;
@@ -18,9 +20,11 @@ class  HttpParserTest {
     }
     @Test
     void parseHttpRequest() throws IOException {
-        httpParser.parseHttpRequest(
+        HttpRequest request = httpParser.parseHttpRequest(
                 generateValidTestCase()
         );
+
+        assertEquals(request.getMethod(), HttpMethod.GET);
     }
 
     private InputStream generateValidTestCase() {
