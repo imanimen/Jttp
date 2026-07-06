@@ -18,6 +18,7 @@ public class HttpRequest extends HttpMessage {
         for (HttpMethod httpMethod: HttpMethod.values()) {
             if (httpMethod.name().equals(methodName)) {
                 this.method = httpMethod;
+                return;
             }
         }
         throw new HttpParsingException(
