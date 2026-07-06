@@ -7,9 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-class HttpParserTest {
+class  HttpParserTest {
 
     private static HttpParser httpParser;
 

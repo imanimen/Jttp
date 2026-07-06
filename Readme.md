@@ -8,3 +8,8 @@
 `[] 3- Read Request Messages`<br>
 `[] 4- Open and Read Files from the Filesystem`<br>
 `[] 5- Write Response Messages`<br>
+
+# References
+RFC 7230 : `https://tools.ietf.org/html/rfc7230`<br>
+RFC 7231 : `https://tools.ietf.org/html/rfc7231`<br>
+RFC 7232 : `https://tools.ietf.org/html/rfc7232`<br>
