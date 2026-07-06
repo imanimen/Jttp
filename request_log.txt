@@ -1,0 +1,20 @@
+pt/homebrew/opt/java/libexec/openjdk.jdk/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA.app/Contents/lib/idea_rt.jar=56347 -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath /Users/imanimen/Development/projects/JAVA/jttp/target/classes:/Users/imanimen/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.19.1/jackson-annotations-2.19.1.jar:/Users/imanimen/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.19.1/jackson-databind-2.19.1.jar:/Users/imanimen/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.19.1/jackson-core-2.19.1.jar:/Users/imanimen/.m2/repository/org/slf4j/slf4j-api/2.0.18/slf4j-api-2.0.18.jar:/Users/imanimen/.m2/repository/ch/qos/logback/logback-classic/1.5.34/logback-classic-1.5.34.jar:/Users/imanimen/.m2/repository/ch/qos/logback/logback-core/1.5.34/logback-core-1.5.34.jar com.imanimen.jttpserver.JttpServer
+10:17:45.574 [main] INFO com.imanimen.jttpserver.JttpServer -- Jttp Server Started at Mon Jul 06 10:17:45 GMT+03:30 2026
+10:17:56.753 [Thread-0] INFO com.imanimen.jttpserver.core.ServerListenerThread -- accepted connection from /0:0:0:0:0:0:0:1
+10:17:56.755 [Thread-0] INFO com.imanimen.jttpserver.core.ServerListenerThread -- accepted connection from /0:0:0:0:0:0:0:1
+GET / HTTP/1.1
+Host: localhost:8080
+Connection: keep-alive
+sec-ch-ua: "Google Chrome";v="149", "Chromium";v="149", "Not)A;Brand";v="24"
+sec-ch-ua-mobile: ?0
+sec-ch-ua-platform: "macOS"
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
+Sec-Fetch-Site: none
+Sec-Fetch-Mode: navigate
+Sec-Fetch-User: ?1
+Sec-Fetch-Dest: document
+Accept-Encoding: gzip, deflate, br, zstd
+Accept-Language: en-US,en;q=0.9,fa;q=0.8,ar;q=0.7,fr;q=0.6
+Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394
