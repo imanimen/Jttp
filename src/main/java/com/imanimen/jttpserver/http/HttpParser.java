@@ -23,6 +23,8 @@ public class HttpParser {
             parseRequestLine(reader, request);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (HttpParsingException e) {
+            throw new RuntimeException(e);
         }
         parseHeaders(reader, request);
         parseBody(reader, request);
@@ -30,7 +32,7 @@ public class HttpParser {
         return request;
     }
 
-    private void parseRequestLine(InputStreamReader reader, HttpRequest request) throws IOException {
+    private void parseRequestLine(InputStreamReader reader, HttpRequest request) throws IOException, HttpParsingException {
         StringBuilder processingDataBuffer = new StringBuilder();
 
         boolean methodParsed = false;
