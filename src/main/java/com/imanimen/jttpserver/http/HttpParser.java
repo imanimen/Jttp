@@ -42,6 +42,10 @@ public class HttpParser {
                 _byte = reader.read();
                 if (_byte == LF) {
                     LOGGER.debug("Request line VERSION to process: {}", processingDataBuffer.toString());
+
+                    if (!methodParsed || !requestTargetParsed) {
+                        throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+                    }
                     return;
                 }
             }
