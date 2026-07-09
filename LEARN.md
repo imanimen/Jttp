@@ -33,7 +33,7 @@ src/
 │   │   └── JttpConnectionWorkerThread.java  # Handles one connection
 │   ├── http/
 │   │   ├── HttpMessage.java             # Abstract base (request/response)
-│   │   ├── HttpMethod.java              # Placeholder for HTTP method type
+│   │   ├── HttpMethod.java              # Enum: GET, POST, PUT, DELETE
 │   │   ├── HttpParser.java              # Parses raw bytes → HttpRequest
 │   │   ├── HttpParsingException.java    # Exception with status code
 │   │   ├── HttpRequest.java             # Request model
@@ -183,17 +183,50 @@ Currently empty. Designed to be extended by both `HttpRequest` and a future `Htt
 
 ```java
 public class HttpRequest extends HttpMessage {
-    private HttpMethod method;   // GET, POST, ...
+    private HttpMethod method;   // GET, POST, PUT, DELETE
     private String target;       // "/index.html", "/api/users", ...
     private String version;      // "HTTP/1.1"
+
+    public void setMethod(String methodName) throws HttpParsingException {
+        for (HttpMethod httpMethod : HttpMethod.values()) {
+            if (httpMethod.name().equals(methodName)) {
+                this.method = httpMethod;
+                return;
+            }
+        }
+        throw new HttpParsingException(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED);
+    }
 }
 ```
 
 Uses package-private constructor — currently only `HttpParser` can create instances.
 
-### `HttpMethod.java`
+`setMethod()` validates the raw method string against the `HttpMethod` enum. Unknown methods (e.g., `FOO`, `PATCH`) throw `501 Not Implemented`. This means the parser rejects unsupported methods at parse time, not at request-handling time.
 
-Empty class. Will likely become an enum or sealed type for HTTP methods.
+### `HttpMethod.java` — Enum
+
+```java
+public enum HttpMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE;
+
+    public static int MAX_LENGTH = 1024;
+
+    static {
+        int tempMaxLength = -1;
+        for (HttpMethod httpMethod : HttpMethod.values()) {
+            if (httpMethod.name().length() > tempMaxLength) {
+                tempMaxLength = httpMethod.name().length();
+            }
+        }
+        MAX_LENGTH = tempMaxLength;
+    }
+}
+```
+
+An enum of supported HTTP methods. `MAX_LENGTH` is computed at class-load time from the longest method name (used by `HttpParser` to reject oversized method tokens before even checking validity).
 
 ### `HttpStatusCode.java` — Enum
 
@@ -216,7 +249,7 @@ Each constant holds `STATUS_CODE` and `MESSAGE`. Useful for building error respo
 Reads raw bytes from an `InputStream` and builds an `HttpRequest`.
 
 ```java
-public HttpRequest parseHttpRequest(InputStream inputStream) throws IOException {
+public HttpRequest parseHttpRequest(InputStream inputStream) throws HttpParsingException {
     InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.US_ASCII);
     HttpRequest request = new HttpRequest();
     parseRequestLine(reader, request);
@@ -227,7 +260,7 @@ public HttpRequest parseHttpRequest(InputStream inputStream) throws IOException 
 ```
 
 **Three-stage parse:**
-1. **Request Line** — reads until `\r\n` (CRLF). Currently only consumes bytes, does not extract method/URI/version.
+1. **Request Line** — reads until `\r\n` (CRLF). Extracts method, target, and validates structure.
 2. **Headers** — empty stub.
 3. **Body** — empty stub.
 
@@ -236,25 +269,60 @@ public HttpRequest parseHttpRequest(InputStream inputStream) throws IOException 
 while ((_byte = reader.read()) >= 0) {
     if (_byte == CR) {
         _byte = reader.read();
-        if (_byte == LF) return;  // end of request line
+        if (_byte == LF) {
+            if (!methodParsed || !requestTargetParsed) {
+                throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST);
+            }
+            return;
+        }
+    }
+    if (_byte == SP) {
+        if (!methodParsed) {
+            request.setMethod(buffer.toString());  // validates against HttpMethod enum
+            methodParsed = true;
+        } else if (!requestTargetParsed) {
+            requestTargetParsed = true;
+        } else {
+            throw new HttpParsingException(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST); // too many spaces
+        }
+        buffer.delete(0, buffer.length());
+    } else {
+        buffer.append((char) _byte);
+        if (!methodParsed && buffer.length() > HttpMethod.MAX_LENGTH) {
+            throw new HttpParsingException(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED);
+        }
     }
 }
 ```
 
+**Error handling added:**
+- Empty request line (missing method or target) → `400 Bad Request`
+- Extra spaces in request line → `400 Bad Request`
+- Method name exceeds `MAX_LENGTH` → `501 Not Implemented`
+- Unknown HTTP method → `501 Not Implemented` (via `HttpRequest.setMethod()`)
+
 > **Learning point:** HTTP uses CRLF (`\r\n`, bytes 13 + 10) as the line delimiter. The constants `SP = 0x20` (space), `CR = 0x0D`, `LF = 0x0A` are defined for clarity.
 
-> **What's missing:** The parser needs to (a) extract method, target, and version from the request line, (b) parse headers into key-value pairs, and (c) read the body based on `Content-Length`.
+> **What's missing:** The parser still needs to (a) extract the version from the request line, (b) parse headers into key-value pairs, and (c) read the body based on `Content-Length`.
 
 ### `HttpParsingException.java`
 
 ```java
 public class HttpParsingException extends Exception {
-    private HttpStatusCode httpStatusCode;
-    // ...
+    private final HttpStatusCode errorCode;
+
+    public HttpParsingException(HttpStatusCode errorCode) {
+        super(errorCode.MESSAGE);
+        this.errorCode = errorCode;
+    }
+
+    public HttpStatusCode getErrorCode() {
+        return errorCode;
+    }
 }
 ```
 
-A checked exception that carries the appropriate HTTP status code, so error handlers can return the right HTTP error response.
+A checked exception that carries the appropriate HTTP status code, so error handlers can return the right HTTP error response. The exception message is set to the status code's `MESSAGE` string (e.g., `"Bad Request"`, `"Not Implemented"`).
 
 ---
 
@@ -300,6 +368,13 @@ mvn exec:java -Dexec.mainClass="com.imanimen.jttpserver.JttpServer"
 
 **Maven Shade Plugin** packages everything into a single executable fat JAR.
 
+### CI/CD (GitHub Actions)
+
+`.github/workflows/maven.yml` runs on push/PR to `main`:
+1. Sets up JDK 25 (Temurin).
+2. Builds with `mvn -B package`.
+3. Runs tests explicitly with `mvn -B test` (makes test results visible in CI logs).
+
 ---
 
 ## Testing
@@ -310,12 +385,27 @@ mvn clean test
 
 ### `HttpParserTest.java`
 
-- Creates a raw HTTP request string (real Chrome browser headers).
-- Wraps it in a `ByteArrayInputStream`.
-- Feeds it to `HttpParser.parseHttpRequest()`.
-- **Currently only verifies no exception is thrown** — no assertions on parsed fields yet.
+Two tests covering valid and invalid requests:
 
-> **Learning point:** The test constructs the exact byte sequence a real browser would send, making it a good integration-level test.
+1. **`parseHttpRequest`** — Sends a real Chrome browser request (`GET / HTTP/1.1` with full headers). Asserts the parsed method equals `HttpMethod.GET`.
+
+2. **`parseHttpBadRequest`** — Sends a request with an unsupported method (`GETTT / HTTP/1.1`). Asserts that `HttpParsingException` is thrown with error code `501 NOT_IMPLEMENTED`.
+
+```java
+@Test
+void parseHttpBadRequest() {
+    try {
+        HttpRequest request = httpParser.parseHttpRequest(
+                generateInValidGETTestCase()  // "GETTT / HTTP/1.1\r\n..."
+        );
+        fail();  // should not reach here
+    } catch (HttpParsingException e) {
+        assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
+    }
+}
+```
+
+> **Learning point:** The test constructs the exact byte sequence a real browser would send, making it a good integration-level test. The invalid test uses an unsupported method to verify the parser correctly rejects it.
 
 ---
 
@@ -325,21 +415,24 @@ mvn clean test
 - Server starts and listens on port 8080.
 - Accepts connections and returns a hardcoded HTML page.
 - Configuration is loaded from `jttp.json`.
-- Basic test infrastructure exists.
+- Request line parsing extracts method and target.
+- Method validation against `HttpMethod` enum (rejects unknown methods with 501).
+- Error handling for malformed request lines (empty, too many spaces, oversized method).
+- Unit tests for valid and invalid HTTP requests.
+- CI pipeline runs build + tests on push/PR to `main`.
 
 ### Not Yet Implemented ❌
 | Feature | Where |
 |---|---|
-| Extract method/URI from request line | `HttpParser.parseRequestLine()` |
+| Extract HTTP version from request line | `HttpParser.parseRequestLine()` |
 | Parse HTTP headers | `HttpParser.parseHeaders()` |
 | Parse HTTP body | `HttpParser.parseBody()` |
 | Serve files from webroot | `JttpConnectionWorkerThread` |
 | Error responses (404, 500, etc.) | Not yet wired |
 | `HttpResponse` class | Not created yet |
-| `HttpMethod` as proper enum | Empty class |
 
 ### Suggested Implementation Order
-1. Complete `parseRequestLine()` — extract method, target, version.
+1. Extract version from request line (currently parsed but not stored).
 2. Implement `parseHeaders()` — parse key-value header pairs.
 3. Implement `parseBody()` — read body using `Content-Length`.
 4. Wire `HttpParser` into `JttpConnectionWorkerThread`.
@@ -420,8 +513,11 @@ The status code should be `501`, not `500`. This is a copy-paste error from the 
 | `JttpConnectionWorkerThread.java` | Handles one HTTP request/response |
 | `HttpParser.java` | Parses raw bytes → structured request |
 | `HttpRequest.java` | Request model (method, target, version) |
+| `HttpMethod.java` | Enum of supported methods (GET, POST, PUT, DELETE) |
 | `HttpStatusCode.java` | HTTP status code enum |
+| `HttpParsingException.java` | Checked exception with HTTP status code |
 | `JxUtil.java` | Jackson utility facade |
 | `jttp.json` | Server configuration file |
-| `HttpParserTest.java` | Unit test for parser |
+| `HttpParserTest.java` | Unit tests for parser |
 | `pom.xml` | Maven build with shade plugin |
+| `.github/workflows/maven.yml` | CI pipeline (build + test) |
