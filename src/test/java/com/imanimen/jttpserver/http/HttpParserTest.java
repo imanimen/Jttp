@@ -44,7 +44,19 @@ class  HttpParserTest {
         } catch (HttpParsingException e) {
             assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
         }
+    }
 
+
+    @Test
+    void parseHttpBadRequestMethodMaxLength() {
+        try {
+            HttpRequest request = httpParser.parseHttpRequest(
+                    generateInValidGETTestCaseMaxLength()
+            );
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
+        }
     }
 
     private InputStream generateValidGETTestCase() {
@@ -74,7 +86,20 @@ class  HttpParserTest {
     }
 
     private InputStream generateInValidGETTestCase() {
-        String rawHttpRequest = "GETTT / HTTP/1.1\r\n" +
+        String rawHttpRequest = "GeTTT / HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394\r\n" +
+                "\r\n";
+
+        return new ByteArrayInputStream(
+                rawHttpRequest.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+    }
+
+    private InputStream generateInValidGETTestCaseMaxLength() {
+        String rawHttpRequest = "GETTTTTT / HTTP/1.1\r\n" +
                 "Host: localhost:8080\r\n" +
                 "Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394\r\n" +
                 "\r\n";
