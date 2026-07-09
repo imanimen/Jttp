@@ -15,7 +15,7 @@ public class HttpParser {
     private static final int CR = 0x0D; // 13 CARRIAGE_RETURN
     private static final int LF = 0x0A; // 10 LINE_FE
 
-    public HttpRequest parseHttpRequest(InputStream inputStream) throws IOException {
+    public HttpRequest parseHttpRequest(InputStream inputStream) throws HttpParsingException {
         InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.US_ASCII);
 
         HttpRequest request = new HttpRequest();
@@ -23,8 +23,6 @@ public class HttpParser {
             parseRequestLine(reader, request);
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (HttpParsingException e) {
-            throw new RuntimeException(e);
         }
         parseHeaders(reader, request);
         parseBody(reader, request);

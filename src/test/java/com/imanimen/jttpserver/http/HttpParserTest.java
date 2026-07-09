@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 class  HttpParserTest {
 
@@ -19,19 +20,30 @@ class  HttpParserTest {
         httpParser = new HttpParser();
     }
     @Test
-    void parseHttpRequest() throws IOException {
-        HttpRequest request = httpParser.parseHttpRequest(
-                generateValidGETTestCase()
-        );
+    void parseHttpRequest()  {
+        HttpRequest request = null;
+        try {
+            request = httpParser.parseHttpRequest(
+                    generateValidGETTestCase()
+            );
 
-        assertEquals(request.getMethod(), HttpMethod.GET);
+        } catch (HttpParsingException e) {
+            fail(e);
+        }
+
+        assertEquals(HttpMethod.GET, request.getMethod());
     }
 
     @Test
-    void parseHttpBadRequest() throws IOException {
-        HttpRequest request = httpParser.parseHttpRequest(
-                generateInValidGETTestCase()
-        );
+    void parseHttpBadRequest() {
+        try {
+            HttpRequest request = httpParser.parseHttpRequest(
+                    generateInValidGETTestCase()
+            );
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.SERVER_ERROR_501_NOT_IMPLEMENTED, e.getErrorCode());
+        }
 
     }
 
@@ -62,7 +74,7 @@ class  HttpParserTest {
     }
 
     private InputStream generateInValidGETTestCase() {
-        String rawHttpRequest = "GET / HTTP/1.1\r\n" +
+        String rawHttpRequest = "GETTT / HTTP/1.1\r\n" +
                 "Host: localhost:8080\r\n" +
                 "Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394\r\n" +
                 "\r\n";
