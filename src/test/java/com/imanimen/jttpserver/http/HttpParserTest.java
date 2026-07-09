@@ -59,6 +59,18 @@ class  HttpParserTest {
         }
     }
 
+    @Test
+    void parseHttpBadRequestInvalidRequestLineItems() {
+        try {
+            HttpRequest request = httpParser.parseHttpRequest(
+                    generateInValidGETRequestLineInvalid()
+            );
+            fail();
+        } catch (HttpParsingException e) {
+            assertEquals(HttpStatusCode.CLIENT_ERROR_400_BAD_REQUEST, e.getErrorCode());
+        }
+    }
+
     private InputStream generateValidGETTestCase() {
         String rawHttpRequest = "GET / HTTP/1.1\r\n" +
                 "Host: localhost:8080\r\n" +
@@ -100,6 +112,19 @@ class  HttpParserTest {
 
     private InputStream generateInValidGETTestCaseMaxLength() {
         String rawHttpRequest = "GETTTTTT / HTTP/1.1\r\n" +
+                "Host: localhost:8080\r\n" +
+                "Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394\r\n" +
+                "\r\n";
+
+        return new ByteArrayInputStream(
+                rawHttpRequest.getBytes(
+                        StandardCharsets.US_ASCII
+                )
+        );
+    }
+
+    private InputStream generateInValidGETRequestLineInvalid() {
+        String rawHttpRequest = "GET / AAAAAA HTTP/1.1\r\n" +
                 "Host: localhost:8080\r\n" +
                 "Cookie: Phpstorm-e23b83ee=e9b0b55c-7724-483f-93b4-b23824eeb394\r\n" +
                 "\r\n";
