@@ -1,9 +1,11 @@
 package com.imanimen.jttpserver.http;
 
 public enum HttpMethod {
+    HEAD,
     GET,
     POST,
     PUT,
+    QUERY,
     DELETE;
 
     public static int MAX_LENGTH = 1024;
